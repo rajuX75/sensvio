@@ -1,3 +1,4 @@
+'use client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,16 +10,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { getAvatar } from '@/lib/get-avatar';
+import { orpc } from '@/lib/orpc';
 import { LogoutLink, PortalLink } from '@kinde-oss/kinde-auth-nextjs/components';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { CreditCard, HelpCircle, LogOut, Settings, Shield, User } from 'lucide-react';
 
-const user = {
-  picture: 'https://github.com/shadcn.png',
-  given_name: 'John',
-  email: 'john@sensvio.com',
-};
-
 const UserNav = () => {
+  const {
+    data: { user },
+  } = useSuspenseQuery(orpc.workspace.list.queryOptions());
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -30,11 +32,11 @@ const UserNav = () => {
           <Avatar className="size-11 ring-2 ring-background group-hover:ring-primary/30 transition-all duration-300">
             <AvatarImage
               className="object-cover"
-              src={user.picture}
+              src={getAvatar(user.picture, user.email!)}
               alt={user.given_name + "'s avatar"}
             />
             <AvatarFallback className="bg-gradient-to-br from-primary/80 to-primary text-primary-foreground font-semibold">
-              {user.given_name.slice(0, 2).toUpperCase()}
+              {user.given_name?.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <span className="absolute bottom-0 right-0 size-3 rounded-full bg-emerald-500 ring-2 ring-background" />
@@ -51,11 +53,11 @@ const UserNav = () => {
             <Avatar className="size-10 ring-2 ring-primary/20">
               <AvatarImage
                 className="object-cover"
-                src={user.picture}
+                src={getAvatar(user.picture, user.email!)}
                 alt={user.given_name + "'s avatar"}
               />
               <AvatarFallback className="bg-gradient-to-br from-primary/80 to-primary text-primary-foreground font-semibold text-sm">
-                {user.given_name.slice(0, 2).toUpperCase()}
+                {user.given_name?.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">

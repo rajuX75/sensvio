@@ -1,5 +1,9 @@
+import '@/lib/orpc.server'; // for pre-rendering
+
 import { AuthProvider } from '@/components/providers/auth-provider';
+import { Providers } from '@/components/providers/query-client-providers';
 import { ThemeProvider } from '@/components/providers/theme-provider';
+import { Toaster } from '@/components/ui/sonner';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
@@ -34,7 +38,8 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <Providers>{children}</Providers>
+            <Toaster closeButton richColors position="bottom-right" />
           </ThemeProvider>
         </body>
       </html>

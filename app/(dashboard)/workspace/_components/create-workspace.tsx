@@ -1,6 +1,6 @@
 'use client';
 
-import { workspaceSchema } from '@/app/schemas/workspace';
+import { workspaceSchema, WorkspaceSchemaType } from '@/app/schemas/workspace';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -20,13 +20,17 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { orpc } from '@/lib/orpc';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Sparkles, Zap } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Loader2, Plus, Sparkles, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 const CreateWorkspace = () => {
   const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const form = useForm({
     resolver: zodResolver(workspaceSchema),
@@ -35,11 +39,29 @@ const CreateWorkspace = () => {
     },
   });
 
-  function onSubmit(data: any) {
-    console.log('submit', data);
-    // Add your submission logic here
-    setOpen(false);
-    form.reset();
+  const createWorkspaceMutation = useMutation(
+    orpc.workspace.create.mutationOptions({
+      onSuccess: (newWorkspace) => {
+        toast.success(`Workspace "${newWorkspace.workspaceName}" created successfully!`, {
+          description: 'You can now start working on your new workspace.',
+        });
+        queryClient.invalidateQueries({
+          queryKey: orpc.workspace.list.queryKey(),
+        });
+        form.reset();
+        setOpen(false);
+      },
+      onError: () => {
+        toast.error('Oh no! 😢', {
+          description:
+            'Something went wrong while creating your workspace. Please try again in a moment.',
+        });
+      },
+    })
+  );
+
+  function onSubmit(values: WorkspaceSchemaType) {
+    createWorkspaceMutation.mutate(values);
   }
 
   return (
@@ -131,11 +153,21 @@ const CreateWorkspace = () => {
                   Cancel
                 </Button>
                 <Button
+                  disabled={createWorkspaceMutation.isPending}
                   type="submit"
                   className="flex-1 h-12 bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300 group"
                 >
-                  <Sparkles className="size-4 mr-2 group-hover:rotate-12 transition-transform duration-300" />
-                  Create Workspace
+                  {createWorkspaceMutation.isPending ? (
+                    <>
+                      <Loader2 className="size-4 mr-2 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="size-4 mr-2 group-hover:rotate-12 transition-transform duration-300" />
+                      Create Workspace
+                    </>
+                  )}
                 </Button>
               </div>
             </form>
