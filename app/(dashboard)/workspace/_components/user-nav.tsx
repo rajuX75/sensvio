@@ -21,6 +21,9 @@ const UserNav = () => {
     data: { user },
   } = useSuspenseQuery(orpc.workspace.list.queryOptions());
 
+  console.log('User data:', user);
+  console.log('User Picture:', user.picture);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
